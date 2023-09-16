@@ -1,0 +1,58 @@
+#include <vector>
+#include <queue>
+#include <cmath>
+#include <climits>
+
+class Solution {
+public:
+    int minimumEffortPath(std::vector<std::vector<int>>& heights) {
+        const int rows = heights.size();
+        const int cols = heights[0].size();
+
+        // Directions for moving: right, down, left, up
+        const std::vector<std::pair<int, int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+        // Custom comparator for the priority queue (min heap)
+        auto cmp = [](const std::tuple<int, int, int>& a, const std::tuple<int, int, int>& b) {
+            return std::get<2>(a) > std::get<2>(b);
+        };
+        
+        // Initialize the priority queue with (row, col, effort) as the starting point
+        std::priority_queue<std::tuple<int, int, int>, std::vector<std::tuple<int, int, int>>, decltype(cmp)> pq(cmp);
+        pq.push({0, 0, 0});
+        
+        // Initialize the effort matrix with maximum values
+        std::vector<std::vector<int>> effort(rows, std::vector<int>(cols, INT_MAX));
+        effort[0][0] = 0;
+
+        while (!pq.empty()) {
+            auto [x, y, currentEffort] = pq.top();
+            pq.pop();
+
+            // Reached the bottom-right cell
+            if (x == rows - 1 && y == cols - 1) {
+                return currentEffort;
+            }
+
+            // Skip if we've already found a better path to this cell
+            if (currentEffort > effort[x][y]) {
+                continue;
+            }
+
+            for (const auto& dir : directions) {
+                int nx = x + dir.first;
+                int ny = y + dir.second;
+
+                if (nx >= 0 && nx < rows && ny >= 0 && ny < cols) {
+                    int newEffort = std::max(currentEffort, std::abs(heights[nx][ny] - heights[x][y]));
+                    if (newEffort < effort[nx][ny]) {
+                        effort[nx][ny] = newEffort;
+                        pq.push({nx, ny, newEffort});
+                    }
+                }
+            }
+        }
+
+        return -1; // Should not reach here
+    }
+};
